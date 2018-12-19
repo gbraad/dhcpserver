@@ -19,28 +19,25 @@ func (handler *DHCPHandler) handleDiscover(packet dhcp.Packet, options dhcp.Opti
 	// Find previous lease
 	for i, v := range handler.leases {
 		if v.nic == nic {
-			free = i
-			goto reply  // Yuck!
+			return handler.handleReplyPacket(packet, options, dhcp.IPAdd(handler.start, i))
 		}
 	}
 
 	// Static assignment
-	for _, v := range staticAssignments {
-		if v.nic == nic {
-			offeredIP = v.ip
-			goto reply  // Yuck!
-		}
+	static, exists := getStaticAssignment(nic)
+	if exists {
+		return handler.handleReplyPacket(packet, options, static.ip)
 	}
 
 	// Find a free lease (based on range)
 	if free = handler.freeLease(); free == -1 {
 		return
 	}
+
+	return handler.handleReplyPacket(packet, options, offeredIP)
+}
 	
-reply:
-	if offeredIP.Equal(net.IPv4zero) {  // no static
-		offeredIP = dhcp.IPAdd(handler.start, free)
-	}
+func (handler *DHCPHandler) handleReplyPacket(packet dhcp.Packet, options dhcp.Options, offeredIP net.IP) (d dhcp.Packet) {
 	log.Println("  Reply", offeredIP)
 
 	replyPacket := dhcp.ReplyPacket(packet, dhcp.Offer, handler.ip, offeredIP, handler.leaseDuration,
@@ -70,13 +67,18 @@ func (handler *DHCPHandler) handleRequest(packet dhcp.Packet, options dhcp.Optio
 				log.Println("  Reply - ACK", requestedIP)
 				replyPacket := dhcp.ReplyPacket(packet, dhcp.ACK, handler.ip, requestedIP, handler.leaseDuration,
 					handler.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
-				replyPacket.AddOption(12, []byte("named"))
+			
+				// check is static assignment has a hostname
+				if static, saExists := getStaticAssignment(nic); saExists {
+					replyPacket.AddOption(12, []byte(static.name))
+				}
 
 				return replyPacket
 			}
 		}
 	}
 
+	// either request did not contain an IP or outside of range
 	log.Println("  Reply - NAK")
 	return dhcp.ReplyPacket(packet, dhcp.NAK, handler.ip, nil, 0, nil)
 
@@ -122,4 +124,14 @@ func (h *DHCPHandler) freeLease() int {
 		}
 	}
 	return -1
+}
+
+func getStaticAssignment(nic string) (DHCPStaticAssignment, bool) {
+        for _, v := range staticAssignments {
+                if v.nic == nic {
+                        return v, true
+                }
+        }
+
+	return DHCPStaticAssignment{}, false
 }
