@@ -3,6 +3,7 @@ package dhcpserver
 import (
 	"log"
         "net"
+	"fmt"
         "time"
 
         dhcp "github.com/krolaw/dhcp4"
@@ -10,15 +11,9 @@ import (
 
 var (
 	staticAssignments	[]DHCPStaticAssignment
-	iface			string
 )
 
-const (
-	port = 67
-)
-
-
-func StartServer() {
+func StartServer(iface string, port int) {
 	log.Println("Setup")
 	serverIP := net.IP{192, 168, 126, 1}
 
@@ -38,13 +33,18 @@ func StartServer() {
 			ip:   net.IP{192, 168, 126, 51},
 			name: "test1-worker-0-n8dtz",
 		},
+		DHCPStaticAssignment {
+			nic:  "52:54:00:86:05:28",
+			ip:   net.IP{192, 168, 126, 103},
+			name: "test1",
+		},
 	}
 
 	handler := &DHCPHandler{
 		ip:            serverIP,
 		leaseDuration: 2 * time.Hour,
 		start:         net.IP{192, 168, 126, 10},
-		leaseRange:    50,
+		leaseRange:    100,
 		leases:        make(map[int]DHCPLease, 10),
 		options: dhcp.Options{
 			dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
@@ -55,10 +55,19 @@ func StartServer() {
         
 	if(iface == "") {
 		log.Println("Listen and serve")
-		log.Fatal(dhcp.ListenAndServe(handler))
+		log.Fatal(listenAndServe(handler, port))
         } else {
 		log.Println("Create connection")
 		conn := createConnection(iface, port)
         	log.Fatal(dhcp.Serve(conn, handler))
 	}
+}
+
+func listenAndServe(handler dhcp.Handler, port int) error {
+	listener, err := net.ListenPacket("udp4", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return err
+	}
+	defer listener.Close()
+	return dhcp.Serve(listener, handler)
 }

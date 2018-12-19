@@ -43,9 +43,10 @@ reply:
 	}
 	log.Println("  Reply", offeredIP)
 
-	return dhcp.ReplyPacket(packet, dhcp.Offer, handler.ip, offeredIP, handler.leaseDuration,
+	replyPacket := dhcp.ReplyPacket(packet, dhcp.Offer, handler.ip, offeredIP, handler.leaseDuration,
 		handler.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
-	
+
+	return replyPacket	
 }
 
 func (handler *DHCPHandler) handleRequest(packet dhcp.Packet, options dhcp.Options) (d dhcp.Packet) {
@@ -64,11 +65,14 @@ func (handler *DHCPHandler) handleRequest(packet dhcp.Packet, options dhcp.Optio
 		if leaseNum := dhcp.IPRange(handler.start, requestedIP) - 1; leaseNum >= 0 && leaseNum < handler.leaseRange {
 			nic := packet.CHAddr().String()
 			log.Println("  MAC:", nic)
-			if l, exists := handler.leases[leaseNum]; !exists || l.nic == nic {
+			if lease, exists := handler.leases[leaseNum]; !exists || lease.nic == nic {
 				handler.leases[leaseNum] = DHCPLease{ nic: nic, expiry: time.Now().Add(handler.leaseDuration) }
 				log.Println("  Reply - ACK", requestedIP)
-				return dhcp.ReplyPacket(packet, dhcp.ACK, handler.ip, requestedIP, handler.leaseDuration,
+				replyPacket := dhcp.ReplyPacket(packet, dhcp.ACK, handler.ip, requestedIP, handler.leaseDuration,
 					handler.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
+				replyPacket.AddOption(12, []byte("named"))
+
+				return replyPacket
 			}
 		}
 	}
@@ -102,7 +106,8 @@ func (handler *DHCPHandler) ServeDHCP(packet dhcp.Packet, msgType dhcp.MessageTy
 	case dhcp.Release, dhcp.Decline:
 		return handler.handleReleaseDecline(packet, options)
 	}
-	
+
+	log.Println("Return nil")	
 	return nil
 }
 
