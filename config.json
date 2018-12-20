@@ -4,27 +4,28 @@
 		"StartFrom": "192.168.126.10",
 		"LeaseDuration": 3600,
 		"LeaseRange": 100,
-		"Options": null
+		"Options": {}
 	},
 	"StaticAssignments": [
 		{
 			"MAC":  "82:7d:df:54:21:62",
 			"IP":   "192.168.126.11",
-			"Name": "test1-master-0",
+			"Name": "test1-master-0"
 		},
 		{
 			"MAC":  "16:91:31:2c:c2:a4",
 			"IP":   "192.168.126.10",
-			"Name": "test1-bootstrap",
+			"Name": "test1-bootstrap"
 		},
 		{
 			"MAC":  "e2:14:06:fa:79:79",
 			"IP":   "192.168.126.51",
-			"Name": "test1-worker-0-n8dtz",
+			"Name": "test1-worker-0-n8dtz"
 		},
 		{
 			"MAC":  "52:54:00:86:05:28",
 			"IP":   "192.168.126.103",
-			"Name": "test1",
-		}]
+			"Name": "test1"
+		}
+		]
 }

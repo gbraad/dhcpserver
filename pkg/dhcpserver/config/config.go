@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 )
@@ -57,6 +58,11 @@ func (cfg *ConfigType) read() error {
 		return err
 	}
 
+	if !json.Valid(raw) {
+		return errors.New("Invalid JSON")
+	}
+
 	json.Unmarshal(raw, &cfg)
+
 	return nil
 }
