@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/gbraad/dhcpserver/pkg/dhcpserver"
+	"github.com/gbraad/dhcpserver/pkg/dhcpserver/config"
 	"github.com/spf13/cobra"
 )
 
@@ -26,6 +27,7 @@ var startCmd = &cobra.Command{
 }
 
 func runStart(arguments []string) {
-	dhcpserver.StartServer(iface, port)
+	// config is ensured from root/PreRun
+	dhcpserver.StartServer(iface, port, *config.Config)
 }
 

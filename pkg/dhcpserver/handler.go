@@ -2,11 +2,12 @@ package dhcpserver
 
 import (
 	"log"
-        "net"
-        "time"
+    "net"
+    "time"
 	"math/rand"
 
-        dhcp "github.com/krolaw/dhcp4"
+    dhcp "github.com/krolaw/dhcp4"
+    "github.com/gbraad/dhcpserver/pkg/dhcpserver/config"
 )
 
 func (handler *DHCPHandler) handleDiscover(packet dhcp.Packet, options dhcp.Options) (d dhcp.Packet) {
@@ -26,7 +27,7 @@ func (handler *DHCPHandler) handleDiscover(packet dhcp.Packet, options dhcp.Opti
 	// Static assignment
 	static, exists := getStaticAssignment(nic)
 	if exists {
-		return handler.handleReplyPacket(packet, options, static.ip)
+		return handler.handleReplyPacket(packet, options, net.ParseIP(static.IP))
 	}
 
 	// Find a free lease (based on range)
@@ -70,7 +71,7 @@ func (handler *DHCPHandler) handleRequest(packet dhcp.Packet, options dhcp.Optio
 			
 				// check is static assignment has a hostname
 				if static, saExists := getStaticAssignment(nic); saExists {
-					replyPacket.AddOption(12, []byte(static.name))
+					replyPacket.AddOption(dhcp.OptionHostName, []byte(static.Name))
 				}
 
 				return replyPacket
@@ -126,12 +127,12 @@ func (h *DHCPHandler) freeLease() int {
 	return -1
 }
 
-func getStaticAssignment(nic string) (DHCPStaticAssignment, bool) {
+func getStaticAssignment(nic string) (config.StaticAssignmentsConfigType, bool) {
         for _, v := range staticAssignments {
-                if v.nic == nic {
+                if v.MAC == nic {
                         return v, true
                 }
         }
 
-	return DHCPStaticAssignment{}, false
+	return config.StaticAssignmentsConfigType{}, false
 }

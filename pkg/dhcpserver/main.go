@@ -2,43 +2,23 @@ package dhcpserver
 
 import (
 	"log"
-        "net"
+    "net"
 	"fmt"
-        "time"
+    "time"
 
-        dhcp "github.com/krolaw/dhcp4"
+    dhcp "github.com/krolaw/dhcp4"
+    "github.com/gbraad/dhcpserver/pkg/dhcpserver/config"
 )
 
 var (
-	staticAssignments	[]DHCPStaticAssignment
+	staticAssignments	[]config.StaticAssignmentsConfigType
 )
 
-func StartServer(iface string, port int) {
+func StartServer(iface string, port int, config config.ConfigType) {
 	log.Println("Setup")
 	serverIP := net.IP{192, 168, 126, 1}
 
-	staticAssignments = []DHCPStaticAssignment{
-		DHCPStaticAssignment {
-			nic:  "82:7d:df:54:21:62",
-			ip:   net.IP{192, 168, 126, 11},
-			name: "test1-master-0",
-		},
-		DHCPStaticAssignment {
-			nic:  "16:91:31:2c:c2:a4",
-			ip:   net.IP{192, 168, 126, 10},
-			name: "test1-bootstrap",
-		},
-		DHCPStaticAssignment {
-			nic:  "e2:14:06:fa:79:79",
-			ip:   net.IP{192, 168, 126, 51},
-			name: "test1-worker-0-n8dtz",
-		},
-		DHCPStaticAssignment {
-			nic:  "52:54:00:86:05:28",
-			ip:   net.IP{192, 168, 126, 103},
-			name: "test1",
-		},
-	}
+	staticAssignments = config.StaticAssignments
 
 	handler := &DHCPHandler{
 		ip:            serverIP,
@@ -56,10 +36,10 @@ func StartServer(iface string, port int) {
 	if(iface == "") {
 		log.Println("Listen and serve")
 		log.Fatal(listenAndServe(handler, port))
-        } else {
+    } else {
 		log.Println("Create connection")
 		conn := createConnection(iface, port)
-        	log.Fatal(dhcp.Serve(conn, handler))
+        log.Fatal(dhcp.Serve(conn, handler))
 	}
 }
 
