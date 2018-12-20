@@ -1,17 +1,17 @@
 package dhcpserver
 
 import (
-	"log"
-    "net"
 	"fmt"
-    "time"
+	"log"
+	"net"
+	"time"
 
-    dhcp "github.com/krolaw/dhcp4"
-    "github.com/gbraad/dhcpserver/pkg/dhcpserver/config"
+	"github.com/gbraad/dhcpserver/pkg/dhcpserver/config"
+	dhcp "github.com/krolaw/dhcp4"
 )
 
 var (
-	staticAssignments	[]config.StaticAssignmentsConfigType
+	staticAssignments []config.StaticAssignmentsConfigType
 )
 
 func StartServer(iface string, port int, config config.ConfigType) {
@@ -32,14 +32,14 @@ func StartServer(iface string, port int, config config.ConfigType) {
 			dhcp.OptionDomainNameServer: []byte(serverIP), // Presuming Server is also your DNS server
 		},
 	}
-        
-	if(iface == "") {
+
+	if iface == "" {
 		log.Println("Listen and serve")
 		log.Fatal(listenAndServe(handler, port))
-    } else {
+	} else {
 		log.Println("Create connection")
 		conn := createConnection(iface, port)
-        log.Fatal(dhcp.Serve(conn, handler))
+		log.Fatal(dhcp.Serve(conn, handler))
 	}
 }
 

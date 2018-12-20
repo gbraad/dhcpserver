@@ -1,10 +1,10 @@
 package dhcpserver
 
 import (
-        "net"
-        "time"
+	"net"
+	"time"
 
-        dhcp "github.com/krolaw/dhcp4"
+	dhcp "github.com/krolaw/dhcp4"
 )
 
 type DHCPLease struct {
@@ -22,7 +22,7 @@ type DHCPHandler struct {
 }
 
 type DHCPStaticAssignment struct {
-	nic		string		// MAC address
-	ip		net.IP		// assigned IP
-	name		string		// hostname
+	nic  string // MAC address
+	ip   net.IP // assigned IP
+	name string // hostname
 }

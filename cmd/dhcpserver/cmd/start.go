@@ -30,4 +30,3 @@ func runStart(arguments []string) {
 	// config is ensured from root/PreRun
 	dhcpserver.StartServer(iface, port, *config.Config)
 }
-

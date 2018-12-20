@@ -2,12 +2,12 @@ package dhcpserver
 
 import (
 	"log"
-    "net"
-    "time"
 	"math/rand"
+	"net"
+	"time"
 
-    dhcp "github.com/krolaw/dhcp4"
-    "github.com/gbraad/dhcpserver/pkg/dhcpserver/config"
+	"github.com/gbraad/dhcpserver/pkg/dhcpserver/config"
+	dhcp "github.com/krolaw/dhcp4"
 )
 
 func (handler *DHCPHandler) handleDiscover(packet dhcp.Packet, options dhcp.Options) (d dhcp.Packet) {
@@ -37,14 +37,14 @@ func (handler *DHCPHandler) handleDiscover(packet dhcp.Packet, options dhcp.Opti
 
 	return handler.handleReplyPacket(packet, options, offeredIP)
 }
-	
+
 func (handler *DHCPHandler) handleReplyPacket(packet dhcp.Packet, options dhcp.Options, offeredIP net.IP) (d dhcp.Packet) {
 	log.Println("  Reply", offeredIP)
 
 	replyPacket := dhcp.ReplyPacket(packet, dhcp.Offer, handler.ip, offeredIP, handler.leaseDuration,
 		handler.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
 
-	return replyPacket	
+	return replyPacket
 }
 
 func (handler *DHCPHandler) handleRequest(packet dhcp.Packet, options dhcp.Options) (d dhcp.Packet) {
@@ -64,11 +64,11 @@ func (handler *DHCPHandler) handleRequest(packet dhcp.Packet, options dhcp.Optio
 			nic := packet.CHAddr().String()
 			log.Println("  MAC:", nic)
 			if lease, exists := handler.leases[leaseNum]; !exists || lease.nic == nic {
-				handler.leases[leaseNum] = DHCPLease{ nic: nic, expiry: time.Now().Add(handler.leaseDuration) }
+				handler.leases[leaseNum] = DHCPLease{nic: nic, expiry: time.Now().Add(handler.leaseDuration)}
 				log.Println("  Reply - ACK", requestedIP)
 				replyPacket := dhcp.ReplyPacket(packet, dhcp.ACK, handler.ip, requestedIP, handler.leaseDuration,
 					handler.options.SelectOrderOrAll(options[dhcp.OptionParameterRequestList]))
-			
+
 				// check is static assignment has a hostname
 				if static, saExists := getStaticAssignment(nic); saExists {
 					replyPacket.AddOption(dhcp.OptionHostName, []byte(static.Name))
@@ -110,7 +110,7 @@ func (handler *DHCPHandler) ServeDHCP(packet dhcp.Packet, msgType dhcp.MessageTy
 		return handler.handleReleaseDecline(packet, options)
 	}
 
-	log.Println("Return nil")	
+	log.Println("Return nil")
 	return nil
 }
 
@@ -128,11 +128,11 @@ func (h *DHCPHandler) freeLease() int {
 }
 
 func getStaticAssignment(nic string) (config.StaticAssignmentsConfigType, bool) {
-        for _, v := range staticAssignments {
-                if v.MAC == nic {
-                        return v, true
-                }
-        }
+	for _, v := range staticAssignments {
+		if v.MAC == nic {
+			return v, true
+		}
+	}
 
 	return config.StaticAssignmentsConfigType{}, false
 }

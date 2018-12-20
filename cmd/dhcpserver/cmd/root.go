@@ -1,16 +1,16 @@
 package cmd
 
 import (
-	"os"
 	"fmt"
 	"github.com/gbraad/dhcpserver/pkg/dhcpserver/config"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 const (
 	descriptionShort = "Run a simple DHCP server"
 	descriptionLong  = "Run a simple DHCP server"
-	configPath		 = "./config.json"
+	configPath       = "./config.json"
 )
 
 var rootCmd = &cobra.Command{
@@ -31,7 +31,7 @@ func init() {
 
 func runPrerun() {
 	fmt.Println(commandName)
-	
+
 	// If AllInstanceConfig is not defined we should define it now.
 	var (
 		err error
